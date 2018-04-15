@@ -29,6 +29,46 @@ class BstNode(object):
         """Check if the node is the root of the BST"""
         return self.parent is None
 
+    def isleaf(self):
+        """"Check if the node is a leaf of the BST"""
+        return self.left_child is None and self.right_child is None
+
+    def replace_subtree(self, node):
+        """Replace the subtree rooted in self with a different subtree"""
+        if node is not None:
+            node.parent = self.parent
+        if self.isroot():
+            # can't really do anything as there's no parent
+            return
+        if self.isleftchild():
+            self.parent.left_child = node
+        else:
+            self.parent.right_child = node
+
+    def replace_node(self, node):
+        """Replace just the current node with a given node"""
+        node.left_child = self.left_child
+        node.right_child = self.right_child
+        if node.left_child is not None:
+            node.left_child.parent = node
+        if node.right_child is not None:
+            node.right_child.parent = node
+        self.replace_subtree(node)
+
+    def min(self):
+        """Return a leftmost node of a subtree, rooted at self"""
+        node = self
+        while node.left_child is not None:
+            node = node.left_child
+        return node
+
+    def max(self):
+        """Return a rightmost node of a subtree, rooted at self"""
+        node = self
+        while node.right_child is not None:
+            node = node.right_child
+        return node
+
     def __repr__(self):
         return '<%r>' % self.data
 
@@ -187,10 +227,9 @@ class BST(object):
 
     def min(self):
         """Get the smallest element in the BST"""
-        node = self.root
-        while node.left_child is not None:
-            node = node.left_child
-        return node
+        if self.root is None:
+            return None
+        return self.root.min()
 
     def iter_inorder(self):
         """Get the in-order traversal iterator for the BST"""
