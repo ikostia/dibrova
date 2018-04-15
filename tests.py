@@ -56,12 +56,30 @@ class TestBasicBST(unittest.TestCase):
         cases = [
             ([], []),
             ([1], [1]),
+            ([1, 2], [2, 1]),
+            ([2, 1, 3], [1, 3, 2]),
+            ([2, 3, 1], [1, 3, 2]),
             ([12, 17, 8, 11, 13, 20, 6, 7, 9, 15],
              [7, 6, 9, 11, 8, 15,13, 20, 17, 12]),
         ]
         for totree, order in cases:
             self.ale(self.build(totree).iter_postorder(), order)
 
+    def test_rotations_simple(self):
+        bst = self.build([7, 3, 10, 1, 4])
+        #      7           3
+        #     / \         / \
+        #    3   10  =>  1   7
+        #   / \             / \
+        #  1   4           4   10
+        self.ale(bst, [1, 3, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [7, 3, 1, 4, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 3, 10, 7])
+        bst.rotate(bst.root, bst.RIGHT)
+        bst.rotate(bst.root, bst.LEFT)
+        self.ale(bst, [1, 3, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [7, 3, 1, 4, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 3, 10, 7])
 
 if __name__ == "__main__":
     unittest.main()

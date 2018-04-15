@@ -1,6 +1,9 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+class ProgrammerError(Exception):
+    pass
+
 class BstNode(object):
     """Binary search tree node"""
 
@@ -125,6 +128,9 @@ class BstPostorderIterator(BstIterator):
             self.curr = node.parent
 
 class BST(object):
+    LEFT = 0
+    RIGHT = 1
+
     """Basic binary search tree"""
     def __init__(self, root=None):
         self.root = root
@@ -145,6 +151,39 @@ class BST(object):
             parent.left_child = node
         else:
             parent.right_child = node
+
+    def rotate(self, root, direction):
+        """Rotate a binary tree around the node in a given direction"""
+        root_is_absolute = root.isroot()
+        root_is_left_child = root.isleftchild()
+        parent = root.parent
+        if direction == self.RIGHT:
+            pivot = root.left_child
+        else:
+            pivot = root.right_child
+
+        if pivot is None:
+            raise ProgrammerError("Rotation pivot cannot be None")
+
+        root.parent = pivot
+        if direction == self.RIGHT:
+            root.left_child = pivot.right_child
+            pivot.right_child = root
+            if root.left_child is not None:
+                root.left_child.parent = root
+        else:
+            root.right_child = pivot.left_child
+            pivot.left_child = root
+            if root.right_child is not None:
+                root.right_child.parent = root
+
+        pivot.parent = parent
+        if root_is_absolute:
+            self.root = pivot
+        elif root_is_left_child:
+            parent.left_child = pivot
+        else:
+            parent.right_child = pivot
 
     def min(self):
         """Get the smallest element in the BST"""
