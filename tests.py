@@ -40,6 +40,7 @@ class TestBasicBST(unittest.TestCase):
 
     def test_preorder(self):
         cases = [
+            ([], []),
             ([1], [1]),
             ([1,2], [1, 2]),
             ([2, 1], [2, 1]),
@@ -50,6 +51,17 @@ class TestBasicBST(unittest.TestCase):
         ]
         for totree, order in cases:
             self.ale(self.build(totree).iter_preorder(), order)
+
+    def test_postorder(self):
+        cases = [
+            ([], []),
+            ([1], [1]),
+            ([12, 17, 8, 11, 13, 20, 6, 7, 9, 15],
+             [7, 6, 9, 11, 8, 15,13, 20, 17, 12]),
+        ]
+        for totree, order in cases:
+            self.ale(self.build(totree).iter_postorder(), order)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -101,6 +101,29 @@ class BstPreorderIterator(BstIterator):
             raise StopIteration()
         self.curr = node.right_child
 
+class BstPostorderIterator(BstIterator):
+    """BstIterator for post-order traversal"""
+    def _start_in_subtree(self, node):
+        while not(node.left_child is None and node.right_child is None):
+            if node.left_child is not None:
+                node = node.left_child
+            else:
+                node = node.right_child
+        return node
+
+    def first_impl(self):
+        self.curr = self._start_in_subtree(self.tree.root)
+
+    def next_impl(self):
+        if self.curr.isroot():
+            raise StopIteration()
+
+        node = self.curr
+        if node.isleftchild() and node.parent.right_child is not None:
+            self.curr = self._start_in_subtree(node.parent.right_child)
+        else:
+            self.curr = node.parent
+
 class BST(object):
     """Basic binary search tree"""
     def __init__(self, root=None):
@@ -137,6 +160,10 @@ class BST(object):
     def iter_preorder(self):
         """Get the pre-order traversal iterator for the BST"""
         return BstPreorderIterator(self)
+
+    def iter_postorder(self):
+        """Get the post-order traversal iterator for the BST"""
+        return BstPostorderIterator(self)
 
     def __iter__(self):
         return self.iter_inorder()
