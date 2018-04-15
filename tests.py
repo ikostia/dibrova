@@ -66,20 +66,77 @@ class TestBasicBST(unittest.TestCase):
             self.ale(self.build(totree).iter_postorder(), order)
 
     def test_rotations_simple(self):
-        bst = self.build([7, 3, 10, 1, 4])
         #      7           3
         #     / \         / \
         #    3   10  =>  1   7
         #   / \             / \
         #  1   4           4   10
+        bst = self.build([7, 3, 10, 1, 4])
         self.ale(bst, [1, 3, 4, 7, 10])
         self.ale(bst.iter_preorder(), [7, 3, 1, 4, 10])
         self.ale(bst.iter_postorder(), [1, 4, 3, 10, 7])
         bst.rotate(bst.root, bst.RIGHT)
+        # rotation does not change in-order traversals
+        self.ale(bst, [1, 3, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [3, 1, 7, 4, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 10, 7, 3])
         bst.rotate(bst.root, bst.LEFT)
+        # mirrorring rotations produce the same tree
         self.ale(bst, [1, 3, 4, 7, 10])
         self.ale(bst.iter_preorder(), [7, 3, 1, 4, 10])
         self.ale(bst.iter_postorder(), [1, 4, 3, 10, 7])
+
+    def test_rotations_complex(self):
+        #    0           0
+        #     \           \
+        #      7           3
+        #     / \         / \
+        #    3   10  =>  1   7
+        #   / \             / \
+        #  1   4           4   10
+        bst = self.build([0, 7, 3, 10, 1, 4])
+        bst.rotate(bst.root.right_child, bst.RIGHT)
+        self.ale(bst, [0, 1, 3, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [0, 3, 1, 7, 4, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 10, 7, 3, 0])
+        bst.rotate(bst.root.right_child, bst.LEFT)
+        self.ale(bst, [0, 1, 3, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [0, 7, 3, 1, 4, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 3, 10, 7, 0])
+
+        #    0           0
+        #     \           \
+        #      7           3
+        #     /           / \
+        #    3     =>    1   7
+        #   / \             /
+        #  1   4           4
+        bst = self.build([0, 7, 3, 1, 4])
+        bst.rotate(bst.root.right_child, bst.RIGHT)
+        self.ale(bst, [0, 1, 3, 4, 7])
+        self.ale(bst.iter_preorder(), [0, 3, 1, 7, 4])
+        self.ale(bst.iter_postorder(), [1, 4, 7, 3, 0])
+        bst.rotate(bst.root.right_child, bst.LEFT)
+        self.ale(bst, [0, 1, 3, 4, 7])
+        self.ale(bst.iter_preorder(), [0, 7, 3, 1, 4])
+        self.ale(bst.iter_postorder(), [1, 4, 3, 7, 0])
+
+        #    0           0
+        #     \           \
+        #      7           3
+        #     /           / \
+        #    3     =>    1   7
+        #   /
+        #  1
+        bst = self.build([0, 7, 3, 1])
+        bst.rotate(bst.root.right_child, bst.RIGHT)
+        self.ale(bst, [0, 1, 3, 7])
+        self.ale(bst.iter_preorder(), [0, 3, 1, 7])
+        self.ale(bst.iter_postorder(), [1, 7, 3, 0])
+        bst.rotate(bst.root.right_child, bst.LEFT)
+        self.ale(bst, [0, 1, 3, 7])
+        self.ale(bst.iter_preorder(), [0, 7, 3, 1])
+        self.ale(bst.iter_postorder(), [1, 3, 7, 0])
 
 if __name__ == "__main__":
     unittest.main()
