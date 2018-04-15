@@ -138,5 +138,67 @@ class TestBasicBST(unittest.TestCase):
         self.ale(bst.iter_preorder(), [0, 7, 3, 1])
         self.ale(bst.iter_postorder(), [1, 3, 7, 0])
 
+    def test_delete(self):
+        #      7
+        #     / \
+        #    3   10
+        #   / \
+        #  1   4
+        bst = self.build([7, 3, 10, 1, 4])
+        self.ale(bst, [1, 3, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [7, 3, 1, 4, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 3, 10, 7])
+        bst.delete(bst.root)
+        #     10
+        #    /
+        #   3
+        #  / \
+        # 1   4
+        self.ale(bst, [1, 3, 4, 10])
+        self.ale(bst.iter_preorder(), [10, 3, 1, 4])
+        self.ale(bst.iter_postorder(), [1, 4, 3, 10])
+        bst.delete(bst.root.left_child)
+        #     10
+        #    /
+        #   4
+        #  /
+        # 1
+        self.ale(bst, [1, 4, 10])
+        self.ale(bst.iter_preorder(), [10, 4, 1])
+        self.ale(bst.iter_postorder(), [1, 4, 10])
+        bst.delete(bst.root.left_child.left_child)
+        #   10
+        #  /
+        # 4
+        self.ale(bst, [4, 10])
+        self.ale(bst.iter_preorder(), [10, 4])
+        self.ale(bst.iter_postorder(), [4, 10])
+        bst.delete(bst.root.left_child)
+        # 10
+        self.ale(bst, [10])
+        self.ale(bst.iter_preorder(), [10])
+        self.ale(bst.iter_postorder(), [10])
+        bst.delete(bst.root)
+        # empty tree
+        self.ale(bst, [])
+        self.ale(bst.iter_preorder(), [])
+        self.ale(bst.iter_postorder(), [])
+
+        #      7
+        #     / \
+        #    3   10
+        #   / \
+        #  1   4
+        bst = self.build([7, 3, 10, 1, 4])
+        bst.delete(bst.root.left_child)
+        #      7
+        #     / \
+        #    4   10
+        #   /
+        #  1
+        self.ale(bst, [1, 4, 7, 10])
+        self.ale(bst.iter_preorder(), [7, 4, 1, 10])
+        self.ale(bst.iter_postorder(), [1, 4, 10, 7])
+
 if __name__ == "__main__":
     unittest.main()

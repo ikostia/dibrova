@@ -192,6 +192,34 @@ class BST(object):
         else:
             parent.right_child = node
 
+    def delete(self, node):
+        if node.isleaf():
+            if node == self.root:
+                # both a leaf and a root, must be the only node of a tree
+                self.root = None
+                return
+            node.replace_subtree(None)
+            return
+
+        replace_node = False
+        if node.left_child is None:
+            replacement = node.right_child
+        elif node.right_child is None:
+            replacement = node.left_child
+        else:
+            # complex case: node with both children
+            replacement = node.right_child.min()
+            self.delete(replacement)
+            replace_node = True
+
+        if replace_node:
+            node.replace_node(replacement)
+        else:
+            node.replace_subtree(replacement)
+
+        if node == self.root:
+            self.root = replacement
+
     def rotate(self, root, direction):
         """Rotate a binary tree around the node in a given direction"""
         root_is_absolute = root.isroot()
