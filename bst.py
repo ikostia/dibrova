@@ -220,6 +220,21 @@ class BST(object):
         if node == self.root:
             self.root = replacement
 
+    def find(self, value):
+        parent = None
+        node = self.root
+        while node is not None:
+            if node.data == value:
+                break
+            if node.data < value and node.right_child is not None:
+                node = node.right_child
+                continue
+            if node.data > value and node.left_child is not None:
+                node = node.left_child
+                continue
+            node = None
+        return node
+
     def rotate(self, root, direction):
         """Rotate a binary tree around the node in a given direction"""
         root_is_absolute = root.isroot()

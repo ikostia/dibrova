@@ -200,5 +200,23 @@ class TestBasicBST(unittest.TestCase):
         self.ale(bst.iter_preorder(), [7, 4, 1, 10])
         self.ale(bst.iter_postorder(), [1, 4, 10, 7])
 
+    def test_find(self):
+        cases = [
+            [],
+            [1],
+            [10, 2],
+            [7, 3, 10, 1, 4]
+        ]
+        for case in cases:
+            bst = self.build(case)
+            for item in case:
+                res = bst.find(item)
+                self.assertEqual(res.data, item)
+                self.assertIsInstance(res, bstmod.BstNode)
+            if case:
+                self.assertIsNone(bst.find(max(case)+1))
+            else:
+                self.assertIsNone(bst.find(1))
+
 if __name__ == "__main__":
     unittest.main()
