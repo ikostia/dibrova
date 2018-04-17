@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+import random
 import unittest
 
 import bst as bstmod
@@ -217,6 +218,157 @@ class TestBasicBST(unittest.TestCase):
                 self.assertIsNone(bst.find(max(case)+1))
             else:
                 self.assertIsNone(bst.find(1))
+
+    def test_augmentations_on_insert(self):
+        bst = bstmod.BST()
+        bst.insert(7)
+        # 7
+        self.assertEqual(bst.root.height, 1)
+        self.assertEqual(bst.root.weight, 1)
+        bst.insert(3)
+        #   7
+        #  /
+        # 3
+        self.assertEqual(bst.root.height, 2)
+        self.assertEqual(bst.root.weight, 2)
+        self.assertEqual(bst.root.left_child.height, 1)
+        self.assertEqual(bst.root.left_child.weight, 1)
+        bst.insert(10)
+        #   7
+        #  / \
+        # 3   10
+        self.assertEqual(bst.root.height, 2)
+        self.assertEqual(bst.root.weight, 3)
+        self.assertEqual(bst.root.left_child.height, 1)
+        self.assertEqual(bst.root.left_child.weight, 1)
+        self.assertEqual(bst.root.right_child.height, 1)
+        self.assertEqual(bst.root.right_child.weight, 1)
+        bst.insert(1)
+        #      7
+        #     / \
+        #    3   10
+        #   /
+        #  1
+        self.assertEqual(bst.root.height, 3)
+        self.assertEqual(bst.root.weight, 4)
+        self.assertEqual(bst.root.left_child.height, 2)
+        self.assertEqual(bst.root.left_child.weight, 2)
+        self.assertEqual(bst.root.left_child.left_child.height, 1)
+        self.assertEqual(bst.root.left_child.left_child.weight, 1)
+        self.assertEqual(bst.root.right_child.height, 1)
+        self.assertEqual(bst.root.right_child.weight, 1)
+        bst.insert(4)
+        #      7
+        #     / \
+        #    3   10
+        #   / \
+        #  1   4
+        self.assertEqual(bst.root.height, 3)
+        self.assertEqual(bst.root.weight, 5)
+        self.assertEqual(bst.root.left_child.height, 2)
+        self.assertEqual(bst.root.left_child.weight, 3)
+        self.assertEqual(bst.root.left_child.left_child.height, 1)
+        self.assertEqual(bst.root.left_child.left_child.weight, 1)
+        self.assertEqual(bst.root.left_child.right_child.height, 1)
+        self.assertEqual(bst.root.left_child.right_child.weight, 1)
+        self.assertEqual(bst.root.right_child.height, 1)
+        self.assertEqual(bst.root.right_child.weight, 1)
+
+    def test_augmentations_on_delete(self):
+        #      7
+        #     / \
+        #    3   10
+        #   / \
+        #  1   4
+        bst = self.build([7, 3, 10, 1, 4])
+        self.assertEqual(bst.root.height, 3)
+        self.assertEqual(bst.root.weight, 5)
+        self.assertEqual(bst.root.left_child.height, 2)
+        self.assertEqual(bst.root.left_child.weight, 3)
+        self.assertEqual(bst.root.right_child.height, 1)
+        self.assertEqual(bst.root.right_child.weight, 1)
+        self.assertEqual(bst.root.left_child.right_child.height, 1)
+        self.assertEqual(bst.root.left_child.right_child.weight, 1)
+
+        bst.delete(bst.root)
+        #     10
+        #    /
+        #   3
+        #  / \
+        # 1   4
+        self.assertEqual(bst.root.height, 3)
+        self.assertEqual(bst.root.weight, 4)
+        self.assertEqual(bst.root.left_child.height, 2)
+        self.assertEqual(bst.root.left_child.weight, 3)
+        self.assertEqual(bst.root.left_child.right_child.height, 1)
+        self.assertEqual(bst.root.left_child.right_child.weight, 1)
+
+        bst.delete(bst.root.left_child)
+        #     10
+        #    /
+        #   4
+        #  /
+        # 1
+        self.assertEqual(bst.root.height, 3)
+        self.assertEqual(bst.root.weight, 3)
+        self.assertEqual(bst.root.left_child.height, 2)
+        self.assertEqual(bst.root.left_child.weight, 2)
+        self.assertEqual(bst.root.left_child.left_child.height, 1)
+        self.assertEqual(bst.root.left_child.left_child.weight, 1)
+
+        bst.delete(bst.root.left_child.left_child)
+        #   10
+        #  /
+        # 4
+        self.assertEqual(bst.root.height, 2)
+        self.assertEqual(bst.root.weight, 2)
+        self.assertEqual(bst.root.left_child.height, 1)
+        self.assertEqual(bst.root.left_child.weight, 1)
+
+        bst.delete(bst.root.left_child)
+        # 10
+        self.assertEqual(bst.root.height, 1)
+        self.assertEqual(bst.root.weight, 1)
+
+        #      7
+        #     / \
+        #    3   10
+        #   / \
+        #  1   4
+        bst = self.build([7, 3, 10, 1, 4])
+        bst.delete(bst.root.left_child)
+        #      7
+        #     / \
+        #    4   10
+        #   /
+        #  1
+        self.assertEqual(bst.root.height, 3)
+        self.assertEqual(bst.root.weight, 4)
+        self.assertEqual(bst.root.left_child.height, 2)
+        self.assertEqual(bst.root.left_child.weight, 2)
+
+    def test_augmentations_on_random(self):
+        def check_augmentations(node):
+            if node is None:
+                return 0, 0
+            left_aug = check_augmentations(node.left_child)
+            right_aug = check_augmentations(node.right_child)
+            height = 1 + max(left_aug[0], right_aug[0])
+            weight = 1 + left_aug[1] + right_aug[1]
+            self.assertEqual(node.height, height)
+            self.assertEqual(node.weight, weight)
+            return (height, weight)
+
+        values = [random.randint(0, 1000) for i in xrange(500)]
+        bst = bstmod.BST()
+        for value in values:
+            bst.insert(value)
+            check_augmentations(bst.root)
+
+        for value in values:
+            bst.delete(bst.root)
+            check_augmentations(bst.root)
+
 
 if __name__ == "__main__":
     unittest.main()

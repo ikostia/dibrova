@@ -12,7 +12,27 @@ class BstNode(object):
         self.parent = parent
         self.left_child = None
         self.right_child = None
-    
+        # the longest path from this node to any leaf
+        # in a subtree rooted at this node
+        self.height = 1
+        # the total number of nodes in a subtree
+        # rooted at this node
+        self.weight = 1
+
+    def fix_augmentations(self, propagate=True):
+        heights = [
+            (self.left_child is not None) and self.left_child.height or 0,
+            (self.right_child is not None) and self.right_child.height or 0,
+        ]
+        weights  = [
+            (self.left_child is not None) and self.left_child.weight or 0,
+            (self.right_child is not None) and self.right_child.weight or 0,
+        ]
+        self.height = max(heights) + 1
+        self.weight = sum(weights) + 1
+        if propagate and self.parent is not None:
+            self.parent.fix_augmentations(propagate=True)
+
     def isleftchild(self):
         """Check if the node is the left child of its parent"""
         if self.parent is None:
@@ -191,6 +211,9 @@ class BST(object):
             parent.left_child = node
         else:
             parent.right_child = node
+        # newly inserted node is always a leaf,
+        # so we can just fix augmentations as we go up
+        node.fix_augmentations(propagate=True)
 
     def delete(self, node):
         if node.isleaf():
@@ -198,10 +221,13 @@ class BST(object):
                 # both a leaf and a root, must be the only node of a tree
                 self.root = None
                 return
+            parent = node.parent
             node.replace_subtree(None)
+            parent.fix_augmentations(propagate=True)
             return
 
         replace_node = False
+        to_fix_augmentations = None
         if node.left_child is None:
             replacement = node.right_child
         elif node.right_child is None:
@@ -209,6 +235,9 @@ class BST(object):
         else:
             # complex case: node with both children
             replacement = node.right_child.min()
+            if replacement.parent is not node:
+                to_fix_augmentations = replacement.parent
+            replacement_parent = replacement.parent
             self.delete(replacement)
             replace_node = True
 
@@ -216,6 +245,10 @@ class BST(object):
             node.replace_node(replacement)
         else:
             node.replace_subtree(replacement)
+        
+        if to_fix_augmentations is None:
+            to_fix_augmentations = replacement
+        to_fix_augmentations.fix_augmentations(propagate=True)
 
         if node == self.root:
             self.root = replacement
