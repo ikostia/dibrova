@@ -4,6 +4,12 @@ from __future__ import absolute_import
 class ProgrammerError(Exception):
     pass
 
+LEFT = 0
+RIGHT = 1
+
+def other_direction(d):
+    return 1 - d
+
 class BstNode(object):
     """Binary search tree node"""
 
@@ -19,6 +25,50 @@ class BstNode(object):
         # rooted at this node
         self.weight = 1
 
+    def child(self, direction):
+        """Return node's child on given direction"""
+        if direction == LEFT:
+            return self.left_child
+        else:
+            return self.right_child
+
+    def ischild(self, direction):
+        """Check if the node is a child on given direction"""
+        if self.parent is None:
+            return False
+        return self == self.parent.child(direction)
+
+    def direction_from_parent(self):
+        """Return the direction this node is on from its parent"""
+        if self.parent is None:
+            raise ProgrammerError("Root does not have a direction from parent")
+        if self.ischild(LEFT):
+            return LEFT
+        return RIGHT
+
+    def set_child(self, direction, node):
+        """Set node's child in a given direction"""
+        if direction is not LEFT and direction is not RIGHT:
+            raise ProgrammerError("direction must be either LEFT or RIGHT")
+        if direction == LEFT:
+            self.left_child = node
+        else:
+            self.right_child = node
+
+    def sibling(self):
+        """Return node's sibling if present or None otherwise"""
+        if self.isroot():
+            raise ProgrammerError("root does not have siblings")
+        return self.parent.child(other_direction(self.direction_from_parent()))
+
+    def isroot(self):
+        """Check if the node is the root of the BST"""
+        return self.parent is None
+
+    def isleaf(self):
+        """"Check if the node is a leaf of the BST"""
+        return self.left_child is None and self.right_child is None
+
     def fix_augmentations(self, propagate=True):
         heights = [
             (self.left_child is not None) and self.left_child.height or 0,
@@ -33,26 +83,6 @@ class BstNode(object):
         if propagate and self.parent is not None:
             self.parent.fix_augmentations(propagate=True)
 
-    def isleftchild(self):
-        """Check if the node is the left child of its parent"""
-        if self.parent is None:
-            return False
-        return self == self.parent.left_child
-
-    def isrightchild(self):
-        """Check if the node is the right child of its parent"""
-        if self.parent is None:
-            return False
-        return self == self.parent.right_child
-
-    def isroot(self):
-        """Check if the node is the root of the BST"""
-        return self.parent is None
-
-    def isleaf(self):
-        """"Check if the node is a leaf of the BST"""
-        return self.left_child is None and self.right_child is None
-
     def replace_subtree(self, node):
         """Replace the subtree rooted in self with a different subtree"""
         if node is not None:
@@ -60,10 +90,7 @@ class BstNode(object):
         if self.isroot():
             # can't really do anything as there's no parent
             return
-        if self.isleftchild():
-            self.parent.left_child = node
-        else:
-            self.parent.right_child = node
+        self.parent.set_child(self.direction_from_parent(), node)
 
     def replace_node(self, node):
         """Replace just the current node with a given node"""
@@ -139,7 +166,7 @@ class BstInorderIterator(BstIterator):
             self.curr = node
             return
         # self.right_child is None
-        while node.isrightchild():
+        while node.ischild(RIGHT):
             node = node.parent
         if node.isroot():
             raise StopIteration()
@@ -182,15 +209,12 @@ class BstPostorderIterator(BstIterator):
             raise StopIteration()
 
         node = self.curr
-        if node.isleftchild() and node.parent.right_child is not None:
-            self.curr = self._start_in_subtree(node.parent.right_child)
+        if node.ischild(LEFT) and node.sibling() is not None:
+            self.curr = self._start_in_subtree(node.sibling())
         else:
             self.curr = node.parent
 
 class BST(object):
-    LEFT = 0
-    RIGHT = 1
-
     """Basic binary search tree"""
     def __init__(self, root=None):
         self.root = root
@@ -271,35 +295,26 @@ class BST(object):
     def rotate(self, root, direction):
         """Rotate a binary tree around the node in a given direction"""
         root_is_absolute = root.isroot()
-        root_is_left_child = root.isleftchild()
+        if not root_is_absolute:
+            root_direction_from_parent = root.direction_from_parent()
         parent = root.parent
-        if direction == self.RIGHT:
-            pivot = root.left_child
-        else:
-            pivot = root.right_child
+        opposite_direction = other_direction(direction)
+        pivot = root.child(opposite_direction)
 
         if pivot is None:
             raise ProgrammerError("Rotation pivot cannot be None")
 
         root.parent = pivot
-        if direction == self.RIGHT:
-            root.left_child = pivot.right_child
-            pivot.right_child = root
-            if root.left_child is not None:
-                root.left_child.parent = root
-        else:
-            root.right_child = pivot.left_child
-            pivot.left_child = root
-            if root.right_child is not None:
-                root.right_child.parent = root
+        root.set_child(opposite_direction, pivot.child(direction))
+        pivot.set_child(direction, root)
+        if root.child(opposite_direction) is not None:
+            root.child(opposite_direction).parent = root
 
         pivot.parent = parent
         if root_is_absolute:
             self.root = pivot
-        elif root_is_left_child:
-            parent.left_child = pivot
         else:
-            parent.right_child = pivot
+            parent.set_child(root_direction_from_parent, pivot)
 
     def min(self):
         """Get the smallest element in the BST"""
