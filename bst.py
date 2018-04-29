@@ -215,14 +215,17 @@ class BstPostorderIterator(BstIterator):
             self.curr = node.parent
 
 class BST(object):
+    NodeClass = BstNode
+
     """Basic binary search tree"""
     def __init__(self, root=None):
+        assert issubclass(self.NodeClass, BstNode)
         self.root = root
 
     def insert(self, data):
         """Naive implementation of BST insert"""
         if self.root is None:
-            self.root = BstNode(data=data)
+            self.root = self.NodeClass(data=data)
             return self.root
 
         parent = None
@@ -230,7 +233,7 @@ class BST(object):
         while node != None:
             parent = node
             node = node.left_child if node.data > data else node.right_child
-        node = BstNode(data=data, parent=parent)
+        node = self.NodeClass(data=data, parent=parent)
         if node.data < parent.data:
             parent.left_child = node
         else:

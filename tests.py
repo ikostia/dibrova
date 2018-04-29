@@ -7,6 +7,22 @@ import unittest
 import bst as bstmod
 
 class TestBasicBST(unittest.TestCase):
+    def test_node_param(self):
+        bst = bstmod.BST()
+        bst.insert(7)
+        self.assertIsInstance(bst.root, bstmod.BstNode)
+        class NewNode(bstmod.BstNode):
+            pass
+        class NewBst(bstmod.BST):
+            NodeClass = NewNode
+        bst = NewBst()
+        bst.insert(7)
+        self.assertIsInstance(bst.root, NewNode)
+        bst.insert(8)
+        bst.delete(bst.root)
+        bst.delete(bst.root)
+        self.assertIsNone(bst.root)
+
     def test_insert(self):
         bst = bstmod.BST()
         self.assertIsNone(bst.root)
