@@ -241,6 +241,7 @@ class BST(object):
         # newly inserted node is always a leaf,
         # so we can just fix augmentations as we go up
         node.fix_augmentations(propagate=True)
+        return node
 
     def delete(self, node):
         if node.isleaf():
