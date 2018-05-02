@@ -381,28 +381,55 @@ class TestBasicBST(unittest.TestCase):
         self.assertEqual(bst.root.left_child.height, 2)
         self.assertEqual(bst.root.left_child.weight, 2)
 
-    def test_augmentations_on_random(self):
-        def check_augmentations(node):
-            if node is None:
-                return 0, 0
-            left_aug = check_augmentations(node.left_child)
-            right_aug = check_augmentations(node.right_child)
-            height = 1 + max(left_aug[0], right_aug[0])
-            weight = 1 + left_aug[1] + right_aug[1]
-            self.assertEqual(node.height, height)
-            self.assertEqual(node.weight, weight)
-            return (height, weight)
+    def check_augmentations(self, node):
+        if node is None:
+            return 0, 0
+        left_aug = self.check_augmentations(node.left_child)
+        right_aug = self.check_augmentations(node.right_child)
+        height = 1 + max(left_aug[0], right_aug[0])
+        weight = 1 + left_aug[1] + right_aug[1]
+        self.assertEqual(node.height, height)
+        self.assertEqual(node.weight, weight)
+        return (height, weight)
 
+    def test_augmentations_on_random(self):
         values = [random.randint(0, 1000) for i in xrange(500)]
         bst = bstmod.BST()
         for value in values:
             bst.insert(value)
-            check_augmentations(bst.root)
+            self.check_augmentations(bst.root)
 
         for value in values:
             bst.delete(bst.root)
-            check_augmentations(bst.root)
+            self.check_augmentations(bst.root)
 
+    def check_bst_property(self, node):
+        if node is None:
+            return
+        if node.right_child is not None:
+            self.assertTrue(node.right_child.data >= node.data)
+        if node.left_child is not None:
+            self.assertTrue(node.left_child.data < node.data)
+        self.check_bst_property(node.right_child)
+        self.check_bst_property(node.left_child)
+
+    def check_avl_property(self, node):
+        if node is None:
+            return
+        self.assertTrue(-1 <= node.avl_balance() <= 1)
+        self.check_avl_property(node.left_child)
+        self.check_avl_property(node.right_child)
+
+    def test_avl_insert(self):
+        for seq in [[1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    [9, 8, 7, 6, 5, 4, 3, 2, 1],
+                    [5, 4, 6, 3, 2, 7, 1, 9, 8]]:
+            bst = bstmod.AvlBst()
+            for item in seq:
+                bst.insert(item)
+                self.check_bst_property(bst.root)
+                self.check_augmentations(bst.root)
+                self.check_avl_property(bst.root)
 
 if __name__ == "__main__":
     unittest.main()

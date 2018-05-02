@@ -340,3 +340,52 @@ class BST(object):
 
     def __iter__(self):
         return self.iter_inorder()
+
+class AvlNode(BstNode):
+    def avl_balance(self):
+        if self.isleaf():
+            return 0
+        if self.left_child is None:
+            return self.right_child.height
+        if self.right_child is None:
+            return -self.left_child.height
+        return self.right_child.height - self.left_child.height
+
+    def heavy(self, direction):
+        if self.avl_balance() < 0 and direction == LEFT:
+            return True
+        elif self.avl_balance() > 0 and direction == RIGHT:
+            return True
+        return False
+
+    def left_heavy(self):
+        return self.avl_balance() < 0
+
+    def right_heavy(self):
+        return self.avl_balance() > 0
+
+class AvlBst(BST):
+    NodeClass = AvlNode
+
+    def rebalance(self, node):
+        while node is not None and -1 <= node.avl_balance() <= 1:
+            node = node.parent
+        if node is None:
+            return
+        dir1 = LEFT if node.heavy(LEFT) else RIGHT
+        dir2 = other_direction(dir1)
+        child = node.child(dir1)
+
+        if not child.heavy(dir2):
+            self.rotate(node, dir2)
+            node.fix_augmentations()
+        else:
+            child.rotate(dir1)
+            child.fix_augmentations()
+            node.rotate(dir2)
+            node.fix_augmentations() 
+
+    def insert(self, data):
+        inserted = super(AvlBst, self).insert(data)
+        self.rebalance(inserted)
+        return inserted
