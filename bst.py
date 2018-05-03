@@ -248,11 +248,11 @@ class BST(object):
             if node == self.root:
                 # both a leaf and a root, must be the only node of a tree
                 self.root = None
-                return
+                return None
             parent = node.parent
             node.replace_subtree(None)
             parent.fix_augmentations(propagate=True)
-            return
+            return None
 
         replace_node = False
         to_fix_augmentations = None
@@ -280,6 +280,7 @@ class BST(object):
 
         if node == self.root:
             self.root = replacement
+        return replacement
 
     def find(self, value):
         parent = None
@@ -380,12 +381,22 @@ class AvlBst(BST):
             self.rotate(node, dir2)
             node.fix_augmentations()
         else:
-            child.rotate(dir1)
-            child.fix_augmentations()
-            node.rotate(dir2)
-            node.fix_augmentations() 
+            self.rotate(child, dir1)
+            child.fix_augmentations(propagate=False)
+            self.rotate(node, dir2)
+            node.fix_augmentations()
 
     def insert(self, data):
         inserted = super(AvlBst, self).insert(data)
         self.rebalance(inserted)
         return inserted
+
+    def delete(self, node):
+        parent = node.parent
+        replacement = super(AvlBst, self).delete(node)
+        node = replacement or parent
+        while node is not None:
+            parent = node.parent
+            self.rebalance(node)
+            node = parent
+        return replacement

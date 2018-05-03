@@ -431,5 +431,46 @@ class TestBasicBST(unittest.TestCase):
                 self.check_augmentations(bst.root)
                 self.check_avl_property(bst.root)
 
+    def test_avl_delete(self):
+        for seq in [[1], [1,2], [2,3,1], [1,2,3,4]]:
+            bst = bstmod.AvlBst()
+            for item in seq:
+                bst.insert(item)
+            for item in reversed(seq[1:]):
+                bst.delete(bst.find(item))
+                self.check_bst_property(bst.root)
+                self.check_augmentations(bst.root)
+                self.check_avl_property(bst.root)
+            bst.delete(bst.find(seq[0]))
+
+        for seq in [[1], [1,2], [1, 2, 3], [1,2,3,4], [4, 3, 2, 1]]:
+            bst = bstmod.AvlBst()
+            for item in seq:
+                bst.insert(item)
+
+            for item in seq[:-1]:
+                bst.delete(bst.find(item))
+                self.check_bst_property(bst.root)
+                self.check_augmentations(bst.root)
+                self.check_avl_property(bst.root)
+            bst.delete(bst.find(seq[-1]))
+
+    def test_big_avl(self):
+        elems = range(1000)
+        random.shuffle(elems)
+        bst = bstmod.AvlBst()
+        for item in elems:
+            bst.insert(item)
+            self.check_bst_property(bst.root)
+            self.check_augmentations(bst.root)
+            self.check_avl_property(bst.root)
+        random.shuffle(elems)
+        for item in elems[:-1]:
+            bst.delete(bst.find(item))
+            self.check_bst_property(bst.root)
+            self.check_augmentations(bst.root)
+            self.check_avl_property(bst.root)
+        bst.delete(bst.find(elems[-1]))
+
 if __name__ == "__main__":
     unittest.main()
