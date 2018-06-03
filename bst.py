@@ -69,7 +69,7 @@ class BstNode(object):
         """"Check if the node is a leaf of the BST"""
         return self.left_child is None and self.right_child is None
 
-    def fix_augmentations(self, propagate=True):
+    def fix_augmentations(self):
         heights = [
             (self.left_child is not None) and self.left_child.height or 0,
             (self.right_child is not None) and self.right_child.height or 0,
@@ -80,8 +80,6 @@ class BstNode(object):
         ]
         self.height = max(heights) + 1
         self.weight = sum(weights) + 1
-        if propagate and self.parent is not None:
-            self.parent.fix_augmentations(propagate=True)
 
     def replace_subtree(self, node):
         """Replace the subtree rooted in self with a different subtree"""
@@ -222,6 +220,14 @@ class BST(object):
         assert issubclass(self.NodeClass, BstNode)
         self.root = root
 
+    def fix_augmentations(self, node, propagate=False):
+        node.fix_augmentations()
+        if not propagate:
+            return
+        while node.parent is not None:
+            node.parent.fix_augmentations()
+            node = node.parent
+
     def insert(self, data):
         """Naive implementation of BST insert"""
         if self.root is None:
@@ -240,7 +246,7 @@ class BST(object):
             parent.right_child = node
         # newly inserted node is always a leaf,
         # so we can just fix augmentations as we go up
-        node.fix_augmentations(propagate=True)
+        self.fix_augmentations(node, propagate=True)
         return node
 
     def delete(self, node):
@@ -251,7 +257,7 @@ class BST(object):
                 return None
             parent = node.parent
             node.replace_subtree(None)
-            parent.fix_augmentations(propagate=True)
+            self.fix_augmentations(parent, propagate=True)
             return None
 
         replace_node = False
@@ -276,7 +282,7 @@ class BST(object):
         
         if to_fix_augmentations is None:
             to_fix_augmentations = replacement
-        to_fix_augmentations.fix_augmentations(propagate=True)
+        self.fix_augmentations(to_fix_augmentations, propagate=True)
 
         if node == self.root:
             self.root = replacement
@@ -369,7 +375,7 @@ class AvlBst(BST):
     NodeClass = AvlNode
 
     def rebalance(self, node, propagate=True):
-        node.fix_augmentations(propagate=False)
+        self.fix_augmentations(node, propagate=False)
         while node is not None and -1 <= node.avl_balance() <= 1:
             node = node.parent
         if node is None:
@@ -380,14 +386,14 @@ class AvlBst(BST):
 
         if not child.heavy(dir2):
             self.rotate(node, dir2)
-            node.fix_augmentations()
+            self.fix_augmentations(node, propagate=True)
         else:
             self.rotate(child, dir1)
-            child.fix_augmentations(propagate=False)
+            self.fix_augmentations(child, propagate=False)
             self.rotate(node, dir2)
-            node.fix_augmentations(propagate=False)
+            self.fix_augmentations(node, propagate=False)
             if node.parent is not None:
-                node.parent.fix_augmentations(propagate=propagate)
+                self.fix_augmentations(node.parent, propagate=propagate)
 
     def insert(self, data):
         inserted = super(AvlBst, self).insert(data)
