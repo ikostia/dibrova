@@ -368,7 +368,8 @@ class AvlNode(BstNode):
 class AvlBst(BST):
     NodeClass = AvlNode
 
-    def rebalance(self, node):
+    def rebalance(self, node, propagate=True):
+        node.fix_augmentations(propagate=False)
         while node is not None and -1 <= node.avl_balance() <= 1:
             node = node.parent
         if node is None:
@@ -384,7 +385,9 @@ class AvlBst(BST):
             self.rotate(child, dir1)
             child.fix_augmentations(propagate=False)
             self.rotate(node, dir2)
-            node.fix_augmentations()
+            node.fix_augmentations(propagate=False)
+            if node.parent is not None:
+                node.parent.fix_augmentations(propagate=propagate)
 
     def insert(self, data):
         inserted = super(AvlBst, self).insert(data)
@@ -397,6 +400,6 @@ class AvlBst(BST):
         node = replacement or parent
         while node is not None:
             parent = node.parent
-            self.rebalance(node)
+            self.rebalance(node, propagate=False)
             node = parent
         return replacement
