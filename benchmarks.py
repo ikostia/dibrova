@@ -4,7 +4,6 @@ from __future__ import absolute_import
 import sys
 import datetime
 import random
-import unittest
 
 import bst as bstmod
 
