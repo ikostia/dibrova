@@ -29,39 +29,32 @@ def measure(func):
     return datetime.datetime.now() - before_func
 
 
-def benchmark_tree(name, bst, n=1000):
-    # if the depth of the tree is n, fixaugmentations(propagate=True)
-    # will consume n stack frames. Yet another reason to get rid of
-    # propagate=True altogether and do everything interatively
-    sys.setrecursionlimit(n+20)
-
-    elements = range(n)
+def benchmark_tree(name, bst, elems_to_insert, elems_to_delete):
+    n = len(elems_to_insert)
     print("Benchmarking %s with %i elements:" % (name, n))
-    random.shuffle(elements)
-    insert_took = measure(lambda: insert_elements(bst, elements))
-    print("  Inserting in random order took:          %fs" % insert_took.total_seconds())
+    insert_took = measure(lambda: insert_elements(bst, elems_to_insert))
+    print("  Inserting took:          %fs" % insert_took.total_seconds())
 
-    random.shuffle(elements)
-    search_took = measure(lambda: find_elements(bst, elements))
-    print("  Searching in random order took:          %fs" % search_took.total_seconds())
+    search_took = measure(lambda: find_elements(bst, elems_to_insert))
+    print("  Searching took:          %fs" % search_took.total_seconds())
 
-    random.shuffle(elements)
-    delete_took = measure(lambda: delete_elements(bst, elements))
-    print("  Deleting in random order took:           %fs" % delete_took.total_seconds())
-
-    elements = range(n)
-    insert_took = measure(lambda: insert_elements(bst, elements))
-    print("  Inserting in linear order took:          %fs" % insert_took.total_seconds())
-
-    search_took = measure(lambda: find_elements(bst, elements))
-    print("  Searching in linear order took:          %fs" % search_took.total_seconds())
-
-    delete_took = measure(lambda: delete_elements(bst, elements[::-1]))
-    print("  Deleting in reversed linear order took:  %fs" % delete_took.total_seconds())
-
+    delete_took = measure(lambda: delete_elements(bst, elems_to_delete))
+    print("  Deleting took:           %fs" % delete_took.total_seconds())
 
 if __name__ == "__main__":
-    benchmark_tree('Naive BST', bstmod.BST())
-    benchmark_tree('AVL BST', bstmod.AvlBst())
-    benchmark_tree('AVL BST', bstmod.AvlBst(), n=10000)
-    benchmark_tree('AVL BST', bstmod.AvlBst(), n=100000)
+    ei100, ed100 = range(100), range(100)
+    ei1000, ed1000 = range(1000), range(1000)
+    ei10000, ed10000 = range(10000), range(10000)
+    ei100000, ed100000 = range(100000), range(100000)
+    eil1000, edl1000 = range(1000), range(999, 0, -1)
+
+    for lst in [ei100, ed100, ei1000, ed1000, ei10000, ed10000, ei100000, ed100000]:
+        random.shuffle(lst)
+
+    benchmark_tree('Naive BST sequential order', bstmod.BST(), eil1000, edl1000)
+    benchmark_tree('AVL BST sequential order', bstmod.AvlBst(), eil1000, edl1000)
+    benchmark_tree('Naive BST random order', bstmod.BST(), ei1000, ed1000)
+    benchmark_tree('AVL BST random order', bstmod.AvlBst(), ei100, ed100)
+    benchmark_tree('AVL BST random order', bstmod.AvlBst(), ei1000, ed1000)
+    benchmark_tree('AVL BST random order', bstmod.AvlBst(), ei10000, ed10000)
+    benchmark_tree('AVL BST random order', bstmod.AvlBst(), ei100000, ed100000)
