@@ -1,0 +1,10 @@
+[package]
+name = "dibrova"
+version = "0.1.0"
+authors = ["Kostia Balytskyi <kostia.balitsky@gmail.com>"]
+
+[lib]
+name = "dibrova"
+path = "src/lib.rs"
+
+[dependencies]
