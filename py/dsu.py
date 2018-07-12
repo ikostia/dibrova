@@ -24,6 +24,22 @@ class BaseDSU(object):
         return self.find_leader(i) == self.find_leader(j)
 
 class DSU(BaseDSU):
+    def __init__(self, n):
+        super(DSU, self).__init__(n)
+        self.size = [1] * n
+
+    def join(self, i, j):
+        il = self.find_leader(i)
+        isz = self.size[i]
+        jl = self.find_leader(j)
+        jsz = self.size[j]
+        if isz > jsz:
+            self.parent[jl] = il
+            self.size[jl] += isz
+        else:
+            self.parent[il] = jl
+            self.size[il] += jsz
+
     def find_leader(self, i):
         path = []
         while self.parent[i] != i:
