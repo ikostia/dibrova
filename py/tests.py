@@ -5,6 +5,7 @@ import random
 import unittest
 
 import bst as bstmod
+import dsu as dsumod
 
 class TestBasicBST(unittest.TestCase):
     def test_node_param(self):
@@ -471,6 +472,23 @@ class TestBasicBST(unittest.TestCase):
             self.check_augmentations(bst.root)
             self.check_avl_property(bst.root)
         bst.delete(bst.find(elems[-1]))
+
+class TestDsu(unittest.TestCase):
+    def _test_basic_operations(self, dsu):
+        self.assertFalse(dsu.is_same_set(1, 2))
+        dsu.join(1, 2)
+        self.assertTrue(dsu.is_same_set(1, 2))
+        self.assertFalse(dsu.is_same_set(1, 3))
+        dsu.join(1, 3)
+        self.assertTrue(dsu.is_same_set(1, 3))
+        self.assertTrue(dsu.is_same_set(2, 3))
+        dsu.join(4, 5)
+        dsu.join(6, 7)
+        dsu.join(4, 6)
+        self.assertTrue(dsu.is_same_set(5 ,7))
+
+    def test_basic_operations(self):
+        self._test_basic_operations(dsumod.BaseDSU(n=1000))
 
 if __name__ == "__main__":
     unittest.main()
