@@ -487,8 +487,11 @@ class TestDsu(unittest.TestCase):
         dsu.join(4, 6)
         self.assertTrue(dsu.is_same_set(5 ,7))
 
-    def test_basic_operations(self):
-        self._test_basic_operations(dsumod.BaseDSU(n=1000))
+    def test_basic_dsu(self):
+        self._test_basic_operations(dsumod.BaseDSU(n=10))
+
+    def test_optimized_dsu(self):
+        self._test_basic_operations(dsumod.DSU(n=10))
 
 if __name__ == "__main__":
     unittest.main()

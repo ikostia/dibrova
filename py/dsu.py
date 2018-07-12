@@ -22,3 +22,13 @@ class BaseDSU(object):
 
     def is_same_set(self, i, j):
         return self.find_leader(i) == self.find_leader(j)
+
+class DSU(BaseDSU):
+    def find_leader(self, i):
+        path = []
+        while self.parent[i] != i:
+            path.append(i)
+            i = self.parent[i]
+        for el in path:
+            self.parent[el] = i
+        return i
