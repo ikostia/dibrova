@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::{HashMap};
 
 /// Generic trait to represent the Disjoint Set Union structure
-trait DSU<'a, T: Hash + Eq + 'a> {
+pub trait DSU<'a, T: Hash + Eq + 'a> {
     /// Return true if elements i and j are in the same set
     fn is_same_set(&self, i: &'a T, j: &'a T) -> bool;
 
@@ -18,7 +18,7 @@ trait DSU<'a, T: Hash + Eq + 'a> {
 }
 
 /// A trait to represent a forest
-trait Forest<'a, T: Hash + Eq + 'a> {
+pub trait Forest<'a, T: Hash + Eq + 'a> {
     /// Return the parent node of node i in the tree
     /// Returning the same node symbolizes the tree root.
     fn get_parent(&self, i: &'a T) -> &'a T;
@@ -63,8 +63,10 @@ where
     fn join(&self, i: &'a T, j: &'a T) {
         let il = self.find_root(i);
         let jl = self.find_root(j);
-        let (new_root, new_child) = self.get_merge_direction(il, jl);
-        self.set_parent(new_child, new_root);
+        if il != jl {
+            let (new_root, new_child) = self.get_merge_direction(il, jl);
+            self.set_parent(new_child, new_root);
+        }
     }
 
     fn insert(&mut self, el: &'a T) {
@@ -155,7 +157,6 @@ where
         for el in path {
             self.set_parent(el, i);
         }
-
         i
     }
 
@@ -190,13 +191,13 @@ mod tests {
 
     #[test]
     fn test_basic_operations_for_naive_dsu<'a>() {
-        let mut dsu: ForestDsu<'a, usize> = ForestDsu::new();
+        let mut dsu: ForestDsu<usize> = ForestDsu::new();
         test_basic_dsu_operations(&mut dsu, &[1, 2, 3]);
     }
 
     #[test]
     fn test_basic_operations_for_optimized_dsu<'a>() {
-        let mut dsu: OptimizedForestDsu<'a, usize> = OptimizedForestDsu::new();
+        let mut dsu: OptimizedForestDsu<usize> = OptimizedForestDsu::new();
         test_basic_dsu_operations(&mut dsu, &[1, 2, 3]);
     }
 

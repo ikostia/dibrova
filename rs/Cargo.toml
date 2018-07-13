@@ -7,4 +7,9 @@ authors = ["Kostia Balytskyi <kostia.balitsky@gmail.com>"]
 name = "dibrova"
 path = "src/lib.rs"
 
+[[bin]]
+name = "dsu-benchmark"
+path = "src/dsu-benchmark.rs"
+
 [dependencies]
+rand = "*"
