@@ -41,6 +41,13 @@ trait Forest<'a, T: Hash + Eq + 'a> {
 
     /// Create a new tree with el as its root
     fn new_tree_from_root(&mut self, el: &'a T);
+
+    /// A function to decide which tree to merge into
+    /// which if merging happens. First a new root should be returned,
+    /// then a new child
+    fn get_merge_direction(&self, i: &'a T, j: &'a T) -> (&'a T, &'a T) {
+        (i, j)
+    }
 }
 
 /// Any Forest is also a DSU
@@ -56,7 +63,8 @@ where
     fn join(&self, i: &'a T, j: &'a T) {
         let il = self.find_root(i);
         let jl = self.find_root(j);
-        self.set_parent(il, jl);
+        let (new_root, new_child) = self.get_merge_direction(il, jl);
+        self.set_parent(new_child, new_root);
     }
 
     fn insert(&mut self, el: &'a T) {
@@ -64,9 +72,11 @@ where
     }
 }
 
+/// A naive unoptimized implementation of
+/// the forest-based DSU, without path
+/// compression or size heuristics
 #[derive(Debug)]
-pub struct ForestDsu<'a, T: 'a + Hash + Eq>
-{
+pub struct ForestDsu<'a, T: 'a + Hash + Eq> {
     parents: RefCell<HashMap<&'a T, &'a T>>
 }
 
@@ -94,6 +104,71 @@ where
     }
 }
 
+/// A forest-based DSU implementation with
+/// path compression and size heuristics
+#[derive(Debug)]
+pub struct OptimizedForestDsu<'a, T: 'a + Hash + Eq> {
+    parents: RefCell<HashMap<&'a T, &'a T>>,
+    sizes: RefCell<HashMap<&'a T, usize>>,
+}
+
+impl<'a, T: 'a + Hash + Eq> OptimizedForestDsu<'a, T>
+{
+    pub fn new() -> Self {
+        Self {
+            parents: RefCell::new(HashMap::new()),
+            sizes: RefCell::new(HashMap::new())
+         }
+    }
+}
+
+impl<'a, T> Forest<'a, T> for OptimizedForestDsu<'a, T>
+where
+    T: 'a + Hash + Eq
+{
+    fn new_tree_from_root(&mut self, el: &'a T) {
+        (*self.parents.borrow_mut()).insert(el, el);
+        (*self.sizes.borrow_mut()).insert(el, 1);
+    }
+
+    fn get_parent(&self, i: &'a T) -> &'a T {
+        self.parents.borrow()[i]
+    }
+
+    fn set_parent(&self, i: &'a T, p: &'a T) {
+        (*self.parents.borrow_mut()).insert(i, p);
+        let sz = self.sizes.borrow()[i] + self.sizes.borrow()[p];
+        (*self.sizes.borrow_mut()).insert(i, sz);
+    }
+
+    /// Find the root of the tree, containing i
+    fn find_root(&self, i: &'a T) -> &'a T {
+        let mut i = i;
+        let mut j = self.get_parent(i);
+        let mut path: Vec<&'a T> = vec![];
+        while j != i {
+            path.push(i);
+            i = j;
+            j = self.get_parent(i);
+        }
+        // perform path compression
+        for el in path {
+            self.set_parent(el, i);
+        }
+
+        i
+    }
+
+    fn get_merge_direction(&self, i: &'a T, j: &'a T) -> (&'a T, &'a T) {
+        if self.sizes.borrow()[i] > self.sizes.borrow()[j] {
+            (i, j)
+        } else {
+            (j, i)
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,8 +189,15 @@ mod tests {
     }
 
     #[test]
-    fn test_basic_operations_for_base_dsu<'a>() {
-        let mut base_dsu: ForestDsu<'a, usize> = ForestDsu::new();
-        test_basic_dsu_operations(&mut base_dsu, &[1, 2, 3]);
+    fn test_basic_operations_for_naive_dsu<'a>() {
+        let mut dsu: ForestDsu<'a, usize> = ForestDsu::new();
+        test_basic_dsu_operations(&mut dsu, &[1, 2, 3]);
     }
+
+    #[test]
+    fn test_basic_operations_for_optimized_dsu<'a>() {
+        let mut dsu: OptimizedForestDsu<'a, usize> = OptimizedForestDsu::new();
+        test_basic_dsu_operations(&mut dsu, &[1, 2, 3]);
+    }
+
 }
