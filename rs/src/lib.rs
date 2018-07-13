@@ -1,83 +1,75 @@
-trait IntDSU {
-    /// Create a new disjoint set union structure
-    fn new(n: usize) -> Self;
+use std::hash::Hash;
+use std::cmp::PartialEq;
 
-    /// Find the leader of the set to which i belongs
-    fn find_leader(&mut self, i: usize) -> usize;
+/// Generic trait to represent the Disjoint Set Union structure
+trait DSU<T: Hash + PartialEq + Copy> {
+    /// Return true if elements i and j are in the same set
+    fn is_same_set(&self, i: T, j: T) -> bool;
 
-    /// Make l the leader of the set to which i belongs
-    /// (l is expected to not belong to i's set at first)
-    fn set_leader(&mut self, i: usize, l: usize);
+    /// Merge sets containing elements i and j
+    fn join(&mut self, i: T, j: T);
+}
 
-    /// Check if two elements belong to the same set
-    fn is_same_set(&mut self, i: usize, j: usize) -> bool {
+/// A trait to represent the DSU, implemented as a tree
+trait TreeDsu<T: Hash + PartialEq + Copy> {
+    /// Return the parent node of node i in the tree
+    fn get_parent(&self, i: T) -> T;
+
+    /// Set the parent of node i in the tree to be node p
+    fn set_parent(&mut self, i: T, p: T);
+
+    /// Find the leader of the set, containing i
+    fn find_leader<'a>(&'a self, i: T) -> T {
+        let mut i = i;
+        let mut j = self.get_parent(i);
+        while j != i {
+            i = j;
+            j = self.get_parent(i);
+        }
+        i
+    }
+}
+
+impl<T, TD> DSU<T> for TD
+where
+    T: Hash + PartialEq + Copy,
+    TD: TreeDsu<T>
+{
+    /// Return true if i and j belong to the same set
+    fn is_same_set(&self, i: T, j: T) -> bool {
         self.find_leader(i) == self.find_leader(j)
     }
 
-    /// Merge sets containing i and j into a signle set
-    fn join(&mut self, i: usize, j: usize) {
+    /// Merge sets containing elements i and j
+    fn join(&mut self, i: T, j: T) {
         let il = self.find_leader(i);
         let jl = self.find_leader(j);
-        self.set_leader(il, jl);
+        self.set_parent(il, jl);
     }
 }
 
 #[derive(Debug)]
-struct BaseDSU {
+pub struct UsizeDSU {
     parent: Vec<usize>
 }
 
-impl IntDSU for BaseDSU {
-    fn new(n: usize) -> Self {
+impl UsizeDSU {
+    pub fn new(n: usize) -> Self {
         let mut v = Vec::with_capacity(n);
         for i in 0..n {
             v.push(i)
         }
-        BaseDSU { parent: v }
-    }
-
-    fn find_leader(&mut self, i: usize) -> usize {
-        let mut i = i;
-        while i != self.parent[i] {
-            i = self.parent[i];
-        }
-        i
-    }
-
-    fn set_leader(&mut self, i: usize, l: usize) {
-        self.parent[i] = l;
+        Self { parent: v }
     }
 }
 
-#[derive(Debug)]
-struct DsuWithPathCompression {
-    parent: Vec<usize>
-}
-
-impl IntDSU for DsuWithPathCompression {
-    fn new(n: usize) -> Self {
-        let mut v = Vec::with_capacity(n);
-        for i in 0..n {
-            v.push(i)
-        }
-        DsuWithPathCompression { parent: v }
+impl TreeDsu<usize> for UsizeDSU {
+    fn get_parent(&self, i: usize) -> usize {
+        self.parent[i]
     }
 
-    fn find_leader(&mut self, i: usize) -> usize {
-        let mut i = i;
-        let mut path: Vec<usize> = vec![];
-        while i != self.parent[i] {
-            path.push(i);
-            i = self.parent[i];
-        }
-        for element in path {
-            self.parent[element] = i;
-        }
-        i
-    }
-
-    fn set_leader(&mut self, i: usize, l: usize) {
-        self.parent[i] = l;
+    fn set_parent(&mut self, i: usize, p: usize) {
+        self.parent[i] = p;
     }
 }
 
@@ -85,7 +77,7 @@ impl IntDSU for DsuWithPathCompression {
 mod tests {
     use super::*;
 
-    fn test_basic_dsu_operations<T: IntDSU>(dsu: &mut T) {
+    fn test_basic_dsu_operations<T: DSU<usize>>(dsu: &mut T) {
         assert_eq!(dsu.is_same_set(1, 2), false);
         dsu.join(1, 2);
         assert_eq!(dsu.is_same_set(1, 2), true);
@@ -95,13 +87,7 @@ mod tests {
 
     #[test]
     fn test_basic_operations_for_base_dsu() {
-        let mut base_dsu = BaseDSU::new(10);
+        let mut base_dsu = UsizeDSU::new(10);
         test_basic_dsu_operations(&mut base_dsu);
-    }
-
-    #[test]
-    fn test_basic_operations_for_dsu_with_parent_compression() {
-        let mut dsu_with_parent_compression = DsuWithPathCompression::new(10);
-        test_basic_dsu_operations(&mut dsu_with_parent_compression);
     }
 }
