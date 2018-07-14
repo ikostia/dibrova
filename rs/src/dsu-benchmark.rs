@@ -1,7 +1,7 @@
 extern crate dibrova;
 extern crate rand;
 
-use dibrova::{OptimizedForestDsu, ForestDsu, DSU};
+use dibrova::dsu::{OptimizedForestDsu, ForestDsu, DSU};
 use std::time::{Instant, Duration};
 use rand::random;
 
