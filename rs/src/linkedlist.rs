@@ -1,5 +1,3 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::boxed::Box;
 
 pub struct List<T> {
@@ -34,6 +32,12 @@ impl<T> List<T> {
             boxed_node.data
         })
     }
+
+    pub fn peek(&self) -> Option<&T> {
+        self.head.as_ref().map(|ref boxed_node| {
+            &boxed_node.data
+        })
+    }
 }
 
 #[cfg(test)]
@@ -63,5 +67,16 @@ mod tests {
         list.push(&b);
         assert!(list.pop() == Some(&b));
         assert!(list.pop() == Some(&a));
+    }
+
+    #[test]
+    fn test_linked_list_peek() {
+        let mut list = List::new();
+        list.push("hello");
+        assert!(list.peek() == Some(&"hello"));
+        list.push("world");
+        assert!(list.peek() == Some(&"world"));
+        list.pop();
+        assert!(list.peek() == Some(&"hello"));
     }
 }
