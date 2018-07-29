@@ -49,5 +49,19 @@ mod tests {
         assert!(list.pop() == Some(1));
         assert!(list.pop() == Some(0));
         assert!(list.pop() == None);
+
+        let mut list = List::new();
+        list.push("hello".to_string());
+        list.push("world".to_string());
+        assert!(list.pop() == Some(String::from("world")));
+        assert!(list.pop() == Some(String::from("hello")));
+
+        let a = Box::new("hello");
+        let b = Box::new("world");
+        let mut list = List::new();
+        list.push(&a);
+        list.push(&b);
+        assert!(list.pop() == Some(&b));
+        assert!(list.pop() == Some(&a));
     }
 }
