@@ -1,4 +1,5 @@
 use std::boxed::Box;
+use std::mem::replace;
 
 pub struct List<T> {
     head: Link<T>
@@ -37,6 +38,15 @@ impl<T> List<T> {
         self.head.as_ref().map(|ref boxed_node| {
             &boxed_node.data
         })
+    }
+}
+
+impl<T> Drop for List<T> {
+    fn drop(&mut self) {
+        let mut head = replace(&mut self.head, None);
+        while let Some(mut boxed_node) = head {
+            head = replace(&mut boxed_node.next, None);
+        }
     }
 }
 
