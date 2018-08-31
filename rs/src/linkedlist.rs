@@ -5,13 +5,17 @@ pub struct List<T> {
     head: Link<T>
 }
 
-pub struct IntoIter<T>(List<T>);
-
 type Link<T> = Option<Box<Node<T>>>;
 
 struct Node<T> {
     data: T,
     next: Link<T>
+}
+
+pub struct IntoIter<T>(List<T>);
+
+pub struct Iter<'a, T: 'a> {
+    next: Option<&'a Node<T>>
 }
 
 impl<T> List<T> {
@@ -45,6 +49,10 @@ impl<T> List<T> {
     pub fn into_iter(self) -> IntoIter<T> {
         IntoIter(self)
     }
+
+    pub fn iter(&self) -> Iter<T> {
+        Iter { next: self.head.as_ref().map(|boxed_node| &**boxed_node) }
+    }
 }
 
 impl<T> Drop for List<T> {
@@ -60,6 +68,17 @@ impl<T> Iterator for IntoIter<T> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
         self.0.pop()
+    }
+}
+
+impl<'a, T> Iterator for Iter<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.map(|node| {
+            self.next = node.next.as_ref().map(|boxed_node| &**boxed_node);
+            &node.data
+        })
     }
 }
 
@@ -112,5 +131,17 @@ mod tests {
         assert_eq!(iter.next(), Some(String::from("0")));
         assert_eq!(iter.next(), Some(String::from("1")));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn test_iter() {
+        let mut list = List::new();
+        let one = 1;
+        let zero = 0;
+        list.push(one);
+        list.push(zero);
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&0));
+        assert_eq!(iter.next(), Some(&1));
     }
 }
