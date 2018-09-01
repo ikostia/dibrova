@@ -180,8 +180,10 @@ mod tests {
         }
         {
             let mut iter = list.iter_mut();
-            let mut seven = iter.next().expect("expected Some element");
+            let seven = iter.next().expect("expected Some element");
             assert_eq!(seven, &mut 7);
+            let one = iter.next().expect("expected Some element");
+            assert_eq!(one, &mut 1);
         }
     }
 }
