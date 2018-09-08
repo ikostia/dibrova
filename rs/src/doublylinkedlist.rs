@@ -6,6 +6,8 @@ pub struct List<T> {
     tail: Link<T>,
 }
 
+pub struct IntoIter<T>(List<T>);
+
 type Link<T> = Option<Rc<RefCell<Node<T>>>>;
 
 struct Node<T> {
@@ -106,11 +108,29 @@ impl<T> List<T> {
     pub fn peek_back_mut(&mut self) -> Option<RefMut<T>> {
         self.tail.as_ref().map(|ref_cell| RefMut::map(ref_cell.borrow_mut(), |node| &mut node.data))
     }
+
+    pub fn into_iter(self) -> IntoIter<T> {
+        IntoIter(self)
+    }
 }
 
 impl<T> Drop for List<T> {
     fn drop(&mut self) {
         while self.pop_front().is_some() {};
+    }
+}
+
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        self.0.pop_front()
+    }
+}
+
+impl<T> DoubleEndedIterator for IntoIter<T> {
+    fn next_back(&mut self) -> Option<T> {
+        self.0.pop_back()
     }
 }
 
@@ -164,5 +184,21 @@ mod tests {
         assert_eq!(&*l.peek_front().unwrap(), &3);
         *l.peek_back_mut().unwrap() = 4;
         assert_eq!(&*l.peek_back().unwrap(), &4);
+    }
+
+    #[test]
+    fn test_into_iter() {
+        let mut l = List::new();
+        l.push_back(0);
+        l.push_back(1);
+        l.push_back(2);
+        l.push_back(3);
+        let mut iter = l.into_iter();
+        assert_eq!(iter.next(), Some(0));
+        assert_eq!(iter.next_back(), Some(3));
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next_back(), Some(2));
+        assert_eq!(iter.next(), None);
+        assert_eq!(iter.next_back(), None);
     }
 }
