@@ -91,3 +91,34 @@ impl<T> List<T> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_basic_push_and_pop() {
+        let mut l = List::new();
+        assert_eq!(l.pop_back(), None);
+        assert_eq!(l.pop_front(), None);
+        l.push_back(8);
+        assert_eq!(l.pop_back(), Some(8));
+        assert_eq!(l.pop_back(), None);
+        assert_eq!(l.pop_front(), None);
+        l.push_front(7);
+        assert_eq!(l.pop_back(), Some(7));
+        assert_eq!(l.pop_back(), None);
+        assert_eq!(l.pop_front(), None);
+        l.push_back(1);
+        l.push_back(2);
+        l.push_back(3);
+        assert_eq!(l.pop_front(), Some(1));
+        assert_eq!(l.pop_front(), Some(2));
+        l.push_front(4);
+        l.push_front(5);
+        assert_eq!(l.pop_back(), Some(3));
+        assert_eq!(l.pop_back(), Some(4));
+        assert_eq!(l.pop_back(), Some(5));
+        assert_eq!(l.pop_back(), None)
+    }
+}
