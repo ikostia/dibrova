@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use std::cell::RefCell;
+use std::cell::{RefCell, Ref};
 
 pub struct List<T> {
     head: Link<T>,
@@ -90,6 +90,14 @@ impl<T> List<T> {
             Rc::try_unwrap(old_tail).ok().unwrap().into_inner().data
         })
     }
+
+    pub fn peek_front(&self) -> Option<Ref<T>> {
+        self.head.as_ref().map(|ref_cell| Ref::map(ref_cell.borrow(), |node| &node.data))
+    }
+
+    pub fn peek_back(&self) -> Option<Ref<T>> {
+        self.tail.as_ref().map(|ref_cell| Ref::map(ref_cell.borrow(), |node| &node.data))
+    }
 }
 
 #[cfg(test)]
@@ -120,5 +128,16 @@ mod tests {
         assert_eq!(l.pop_back(), Some(4));
         assert_eq!(l.pop_back(), Some(5));
         assert_eq!(l.pop_back(), None)
+    }
+
+    #[test]
+    fn test_peek() {
+        let mut l = List::new();
+        assert!(l.peek_front().is_none());
+        assert!(l.peek_back().is_none());
+        l.push_back(8);
+        l.push_back(7);
+        assert_eq!(&*l.peek_front().unwrap(), &8);
+        assert_eq!(&*l.peek_back().unwrap(), &7);
     }
 }
