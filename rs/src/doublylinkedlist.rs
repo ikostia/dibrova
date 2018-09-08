@@ -45,4 +45,49 @@ impl<T> List<T> {
             }
         };
     }
+
+    pub fn push_back(&mut self, data: T) {
+        let new_tail = Node::new(data);
+        match self.tail.take() {
+            Some(old_tail) => {
+                old_tail.borrow_mut().next = Some(new_tail.clone());
+                new_tail.borrow_mut().prev = Some(old_tail);
+                self.tail = Some(new_tail);
+            },
+            None => {
+                self.tail = Some(new_tail.clone());
+                self.head = Some(new_tail);
+            }
+        }
+    }
+
+    pub fn pop_front(&mut self) -> Option<T> {
+        self.head.take().map(|old_head| {
+            match old_head.borrow_mut().next.take() {
+                Some(new_head) => {
+                    new_head.borrow_mut().prev = None;
+                    self.head = Some(new_head);
+                },
+                None => {
+                    self.tail = None;
+                }
+            };
+            Rc::try_unwrap(old_head).ok().unwrap().into_inner().data
+        })
+    }
+
+    pub fn pop_back(&mut self) -> Option<T> {
+        self.tail.take().map(|old_tail| {
+            match old_tail.borrow_mut().prev.take() {
+                Some(new_tail) => {
+                    new_tail.borrow_mut().next = None;
+                    self.tail = Some(new_tail);
+                },
+                None => {
+                    self.head = None;
+                }
+            };
+            Rc::try_unwrap(old_tail).ok().unwrap().into_inner().data
+        })
+    }
 }
