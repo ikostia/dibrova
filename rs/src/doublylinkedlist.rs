@@ -100,6 +100,12 @@ impl<T> List<T> {
     }
 }
 
+impl<T> Drop for List<T> {
+    fn drop(&mut self) {
+        while self.pop_front().is_some() {};
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
