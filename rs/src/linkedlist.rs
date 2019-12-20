@@ -2,24 +2,24 @@ use std::boxed::Box;
 use std::mem::replace;
 
 pub struct List<T> {
-    head: Link<T>
+    head: Link<T>,
 }
 
 type Link<T> = Option<Box<Node<T>>>;
 
 struct Node<T> {
     data: T,
-    next: Link<T>
+    next: Link<T>,
 }
 
 pub struct IntoIter<T>(List<T>);
 
 pub struct Iter<'a, T: 'a> {
-    next: Option<&'a Node<T>>
+    next: Option<&'a Node<T>>,
 }
 
 pub struct IterMut<'a, T: 'a> {
-    next: Option<&'a mut Node<T>>
+    next: Option<&'a mut Node<T>>,
 }
 
 impl<T> List<T> {
@@ -30,7 +30,7 @@ impl<T> List<T> {
     pub fn push(&mut self, data: T) {
         let new_head = Some(Box::new(Node {
             data: data,
-            next: self.head.take()
+            next: self.head.take(),
         }));
 
         self.head = new_head;
@@ -45,9 +45,7 @@ impl<T> List<T> {
     }
 
     pub fn peek(&self) -> Option<&T> {
-        self.head.as_ref().map(|ref boxed_node| {
-            &boxed_node.data
-        })
+        self.head.as_ref().map(|ref boxed_node| &boxed_node.data)
     }
 
     pub fn into_iter(self) -> IntoIter<T> {
@@ -55,11 +53,15 @@ impl<T> List<T> {
     }
 
     pub fn iter(&self) -> Iter<T> {
-        Iter { next: self.head.as_ref().map(|boxed_node| &**boxed_node) }
+        Iter {
+            next: self.head.as_ref().map(|boxed_node| &**boxed_node),
+        }
     }
 
     pub fn iter_mut(&mut self) -> IterMut<T> {
-        IterMut { next: self.head.as_mut().map(|boxed_node| &mut **boxed_node) }
+        IterMut {
+            next: self.head.as_mut().map(|boxed_node| &mut **boxed_node),
+        }
     }
 }
 
@@ -174,7 +176,7 @@ mod tests {
         };
         {
             let mut iter = list.iter_mut();
-            let mut zero = iter.next().expect("expected Some element");
+            let zero = iter.next().expect("expected Some element");
             assert_eq!(zero, &mut 0);
             *zero = 7;
         }

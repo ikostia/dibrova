@@ -1,6 +1,6 @@
-use std::rc::Rc;
 use std::cell::RefCell;
 use std::cmp::Ordering;
+use std::rc::Rc;
 
 /// A direction of a child relative to a parent
 #[derive(Clone, Copy)]
@@ -13,7 +13,7 @@ pub enum Direction {
 pub fn flip_direction(d: Direction) -> Direction {
     match d {
         Direction::Left => Direction::Right,
-        Direction::Right => Direction::Left
+        Direction::Right => Direction::Left,
     }
 }
 
@@ -56,8 +56,8 @@ pub trait BstNode: PartialEq {
             None => false,
             Some(parent) => match parent.get_child(direction) {
                 None => panic!("Inconsistent tree structure: parent of node has empty child link"),
-                Some(child) => &*child == self
-            }
+                Some(child) => &*child == self,
+            },
         }
     }
 
@@ -143,7 +143,7 @@ pub trait Bst {
 }
 
 pub struct SimpleBst<Node: BstNode> {
-    root: Option<Link<Node>>
+    root: Option<Link<Node>>,
 }
 
 impl<Value: PartialEq + PartialOrd> Bst for SimpleBst<SimpleBstNode<Value>> {
@@ -160,13 +160,13 @@ impl<Value: PartialEq + PartialOrd> Bst for SimpleBst<SimpleBstNode<Value>> {
             match maybe_current_node.clone() {
                 Some(current_node) => {
                     match current_node.get_direction_of_value(&value) {
-                        Some(direction) => { 
+                        Some(direction) => {
                             maybe_parent_and_direction = Some((current_node.clone(), direction));
                             maybe_current_node = current_node.get_child(direction);
                         }
                         None => break,
                     };
-                },
+                }
                 None => break,
             }
         }
@@ -182,7 +182,7 @@ impl<Value: PartialEq + PartialOrd> Bst for SimpleBst<SimpleBstNode<Value>> {
             Some((parent, direction)) => {
                 parent.set_child(direction, Some(new_node.clone()));
                 new_node.set_parent(Some(parent));
-            },
+            }
             None => {
                 // First node of the tree
                 self.root.replace(new_node);
@@ -193,18 +193,20 @@ impl<Value: PartialEq + PartialOrd> Bst for SimpleBst<SimpleBstNode<Value>> {
 
 impl<Value: PartialEq + PartialOrd> SimpleBst<SimpleBstNode<Value>> {
     pub fn new() -> Self {
-        Self {
-            root: None
-        }
+        Self { root: None }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
     use super::*;
+    use std::fmt::Debug;
 
-    fn get_three_nodes<Node: BstNode>(small: Node::Value, medium: Node::Value, large: Node::Value) -> (Link<Node>, Link<Node>, Link<Node>) {
+    fn get_three_nodes<Node: BstNode>(
+        small: Node::Value,
+        medium: Node::Value,
+        large: Node::Value,
+    ) -> (Link<Node>, Link<Node>, Link<Node>) {
         let left_node = Link::new(Node::new(small));
         let right_node = Link::new(Node::new(large));
         let root_node = Link::new(Node::new(medium));
@@ -215,11 +217,16 @@ mod tests {
         (root_node, left_node, right_node)
     }
 
-    fn test_simple_node_creation_gen<V: Debug + Clone + PartialEq + PartialOrd>(small: V, medium: V, large: V) {
+    fn test_simple_node_creation_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        small: V,
+        medium: V,
+        large: V,
+    ) {
         // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
         assert!(small < medium);
         assert!(large > medium);
-        let (root_node, left_node, right_node) = get_three_nodes::<SimpleBstNode<V>>(small.clone(), medium.clone(), large.clone());
+        let (root_node, left_node, right_node) =
+            get_three_nodes::<SimpleBstNode<V>>(small.clone(), medium.clone(), large.clone());
         assert_eq!(root_node.as_value(), &medium);
         assert_eq!(left_node.as_value(), &small);
         assert_eq!(right_node.as_value(), &large);
@@ -233,11 +240,16 @@ mod tests {
         test_simple_node_creation_gen::<&str>("a", "b", "c");
     }
 
-    fn test_simple_node_relationships_gen<V: Debug + Clone + PartialEq + PartialOrd>(small: V, medium: V, large: V) {
+    fn test_simple_node_relationships_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        small: V,
+        medium: V,
+        large: V,
+    ) {
         // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
         assert!(small < medium);
         assert!(large > medium);
-        let (root_node, left_node, right_node) = get_three_nodes::<SimpleBstNode<V>>(small, medium.clone(), large);
+        let (root_node, left_node, right_node) =
+            get_three_nodes::<SimpleBstNode<V>>(small, medium.clone(), large);
         assert_eq!(root_node.get_child(Direction::Left).unwrap(), left_node);
         assert_eq!(root_node.get_child(Direction::Right).unwrap(), right_node);
         assert_eq!(left_node.get_parent().unwrap().as_value(), &medium);
@@ -253,17 +265,26 @@ mod tests {
     #[test]
     fn test_simple_node_relationships() {
         test_simple_node_relationships_gen::<u32>(8, 9, 10);
-        test_simple_node_relationships_gen::<String>("a".to_string(), "b".to_string(), "c".to_string());
+        test_simple_node_relationships_gen::<String>(
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+        );
         test_simple_node_relationships_gen::<&u32>(&8, &9, &10);
         test_simple_node_relationships_gen::<&str>("a", "b", "c");
     }
 
-    fn test_simple_node_ordering_gen<V: Debug + Clone + PartialEq + PartialOrd>(small: V, medium: V, large: V) {
+    fn test_simple_node_ordering_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        small: V,
+        medium: V,
+        large: V,
+    ) {
         // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
         assert!(small < medium);
         assert!(large > medium);
 
-        let (root_node, left_node, right_node) = get_three_nodes::<SimpleBstNode<V>>(small, medium, large);
+        let (root_node, left_node, right_node) =
+            get_three_nodes::<SimpleBstNode<V>>(small, medium, large);
         assert!(left_node < root_node);
         assert!(left_node < right_node);
         assert!(right_node > root_node);
@@ -280,7 +301,7 @@ mod tests {
         test_simple_node_ordering_gen::<String>("a".to_string(), "b".to_string(), "c".to_string());
     }
 
-    fn empty_simple_bst<V: PartialEq + PartialOrd>() -> SimpleBst::<SimpleBstNode<V>> {
+    fn empty_simple_bst<V: PartialEq + PartialOrd>() -> SimpleBst<SimpleBstNode<V>> {
         SimpleBst::<SimpleBstNode<V>>::new()
     }
 
@@ -299,7 +320,12 @@ mod tests {
         test_simple_bst_creation_gen::<&str>("hello");
     }
 
-    fn test_simple_bst_insertion_gen<V: Debug + Clone + PartialEq + PartialOrd>(e1: V, e2: V, e3: V, e4: V) {
+    fn test_simple_bst_insertion_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        e1: V,
+        e2: V,
+        e3: V,
+        e4: V,
+    ) {
         // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
         assert!((e1 < e2) && (e2 < e3) && (e3 < e4));
 
@@ -354,7 +380,12 @@ mod tests {
     fn test_simple_bst_insertion() {
         test_simple_bst_insertion_gen::<u32>(1, 2, 3, 4);
         test_simple_bst_insertion_gen::<&u32>(&1, &2, &3, &4);
-        test_simple_bst_insertion_gen::<String>("a".to_string(), "b".to_string(), "c".to_string(), "d".to_string());
+        test_simple_bst_insertion_gen::<String>(
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+        );
         test_simple_bst_insertion_gen::<&str>("a", "b", "c", "d");
     }
 }

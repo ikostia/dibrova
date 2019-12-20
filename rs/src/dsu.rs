@@ -1,7 +1,7 @@
-use std::hash::Hash;
-use std::cmp::Eq;
 use std::cell::RefCell;
-use std::collections::{HashMap};
+use std::cmp::Eq;
+use std::collections::HashMap;
+use std::hash::Hash;
 
 /// Generic trait to represent the Disjoint Set Union structure
 pub trait DSU<'a, T: Hash + Eq + 'a> {
@@ -54,7 +54,7 @@ pub trait Forest<'a, T: Hash + Eq + 'a> {
 impl<'a, T, F> DSU<'a, T> for F
 where
     T: Hash + Eq + 'a,
-    F: Forest<'a, T>
+    F: Forest<'a, T>,
 {
     fn is_same_set(&self, i: &'a T, j: &'a T) -> bool {
         self.find_root(i) == self.find_root(j)
@@ -79,19 +79,20 @@ where
 /// compression or size heuristics
 #[derive(Debug)]
 pub struct ForestDsu<'a, T: 'a + Hash + Eq> {
-    parents: RefCell<HashMap<&'a T, &'a T>>
+    parents: RefCell<HashMap<&'a T, &'a T>>,
 }
 
-impl<'a, T: 'a + Hash + Eq> ForestDsu<'a, T>
-{
+impl<'a, T: 'a + Hash + Eq> ForestDsu<'a, T> {
     pub fn new() -> Self {
-        Self { parents: RefCell::new(HashMap::new()) }
+        Self {
+            parents: RefCell::new(HashMap::new()),
+        }
     }
 }
 
 impl<'a, T> Forest<'a, T> for ForestDsu<'a, T>
 where
-    T: 'a + Hash + Eq
+    T: 'a + Hash + Eq,
 {
     fn new_tree_from_root(&mut self, el: &'a T) {
         (*self.parents.borrow_mut()).insert(el, el);
@@ -114,19 +115,18 @@ pub struct OptimizedForestDsu<'a, T: 'a + Hash + Eq> {
     sizes: RefCell<HashMap<&'a T, usize>>,
 }
 
-impl<'a, T: 'a + Hash + Eq> OptimizedForestDsu<'a, T>
-{
+impl<'a, T: 'a + Hash + Eq> OptimizedForestDsu<'a, T> {
     pub fn new() -> Self {
         Self {
             parents: RefCell::new(HashMap::new()),
-            sizes: RefCell::new(HashMap::new())
-         }
+            sizes: RefCell::new(HashMap::new()),
+        }
     }
 }
 
 impl<'a, T> Forest<'a, T> for OptimizedForestDsu<'a, T>
 where
-    T: 'a + Hash + Eq
+    T: 'a + Hash + Eq,
 {
     fn new_tree_from_root(&mut self, el: &'a T) {
         (*self.parents.borrow_mut()).insert(el, el);
@@ -169,15 +169,14 @@ where
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn test_basic_dsu_operations<'a, T, D>(dsu: &mut D, elements: &'a [T]) 
+    fn test_basic_dsu_operations<'a, T, D>(dsu: &mut D, elements: &'a [T])
     where
         T: 'a + Hash + Eq,
-        D: DSU<'a, T>
+        D: DSU<'a, T>,
     {
         dsu.insert(&elements[0]);
         dsu.insert(&elements[1]);

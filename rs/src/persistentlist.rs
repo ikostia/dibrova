@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 pub struct List<T> {
-    head: Link<T>
+    head: Link<T>,
 }
 
 type Link<T> = Option<Rc<Node<T>>>;
@@ -12,7 +12,7 @@ struct Node<T> {
 }
 
 pub struct Iter<'a, T: 'a> {
-    next: Option<&'a Node<T>>
+    next: Option<&'a Node<T>>,
 }
 
 impl<T> List<T> {
@@ -21,22 +21,31 @@ impl<T> List<T> {
     }
 
     pub fn append(&self, data: T) -> List<T> {
-        List { head: Some(Rc::new(Node {
-            data: data,
-            next: self.head.clone(),
-        }))}
+        List {
+            head: Some(Rc::new(Node {
+                data: data,
+                next: self.head.clone(),
+            })),
+        }
     }
 
     pub fn tail(&self) -> List<T> {
-        List { head: self.head.as_ref().and_then(|head_node| head_node.next.clone()) }
+        List {
+            head: self
+                .head
+                .as_ref()
+                .and_then(|head_node| head_node.next.clone()),
+        }
     }
 
     pub fn head(&self) -> Option<&T> {
-        self.head.as_ref().map(|node| { &node.data })
+        self.head.as_ref().map(|node| &node.data)
     }
 
     pub fn iter(&self) -> Iter<T> {
-        Iter { next: self.head.as_ref().map(|node| &**node ) }
+        Iter {
+            next: self.head.as_ref().map(|node| &**node),
+        }
     }
 }
 
@@ -58,7 +67,7 @@ impl<T> Drop for List<T> {
             match Rc::try_unwrap(rc_node) {
                 Ok(mut node) => {
                     head = node.next.take();
-                },
+                }
                 Err(_) => {
                     break;
                 }
