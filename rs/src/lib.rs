@@ -1,3 +1,4 @@
+pub mod bst;
 pub mod doublylinkedlist;
 pub mod dsu;
 pub mod linkedlist;
