@@ -142,6 +142,17 @@ pub trait Bst {
     fn insert(&mut self, value: <Self::Node as BstNode>::Value);
 }
 
+fn get_extreme<Node: BstNode>(mut node: Link<Node>, direction: Direction) -> Link<Node> {
+    loop {
+        match node.clone().get_child(direction) {
+            Some(child) => {
+                node = child;
+            }
+            None => return node,
+        }
+    }
+}
+
 pub struct SimpleBst<Node: BstNode> {
     root: Option<Link<Node>>,
 }
@@ -387,5 +398,31 @@ mod tests {
             "d".to_string(),
         );
         test_simple_bst_insertion_gen::<&str>("a", "b", "c", "d");
+    }
+
+    fn test_get_extreme_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        small: V,
+        medium: V,
+        large: V,
+    ) {
+        // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
+        assert!(small < medium);
+        assert!(large > medium);
+        let (root_node, left_node, right_node) =
+            get_three_nodes::<SimpleBstNode<V>>(small.clone(), medium.clone(), large.clone());
+        assert_eq!(get_extreme(root_node.clone(), Direction::Left), left_node);
+        assert_eq!(get_extreme(root_node.clone(), Direction::Right), right_node);
+        assert_eq!(get_extreme(left_node.clone(), Direction::Left), left_node);
+        assert_eq!(get_extreme(left_node.clone(), Direction::Right), left_node);
+        assert_eq!(get_extreme(right_node.clone(), Direction::Left), right_node);
+        assert_eq!(
+            get_extreme(right_node.clone(), Direction::Right),
+            right_node
+        );
+    }
+
+    #[test]
+    fn test_get_extreme() {
+        test_get_extreme_gen::<u32>(7, 8, 9);
     }
 }
