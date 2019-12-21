@@ -153,6 +153,19 @@ fn get_extreme<Node: BstNode>(mut node: Link<Node>, direction: Direction) -> Lin
     }
 }
 
+fn next_inorder<Node: BstNode>(node: Link<Node>) -> Option<Link<Node>> {
+    node.clone()
+        .get_child(Direction::Right)
+        .map(|right_subtree_root| get_extreme(right_subtree_root, Direction::Left))
+        .or_else(|| {
+            if node.is_child(Direction::Left) {
+                node.get_parent()
+            } else {
+                None
+            }
+        })
+}
+
 pub struct SimpleBst<Node: BstNode> {
     root: Option<Link<Node>>,
 }
@@ -424,5 +437,44 @@ mod tests {
     #[test]
     fn test_get_extreme() {
         test_get_extreme_gen::<u32>(7, 8, 9);
+    }
+
+    fn test_next_inorder_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        e1: V,
+        e2: V,
+        e3: V,
+        e4: V,
+    ) {
+        // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
+        assert!((e1 < e2) && (e2 < e3) && (e3 < e4));
+
+        // Case 1:
+        //   e2
+        //  /  \
+        // e1   e4
+        //     /
+        //    e3
+        let mut bst = empty_simple_bst::<V>();
+        bst.insert(e2.clone());
+        bst.insert(e4.clone());
+        bst.insert(e1.clone());
+        bst.insert(e3.clone());
+        let root = bst.get_root().unwrap();
+        let e1node = get_extreme(root, Direction::Left);
+        let e2node = next_inorder(e1node.clone()).unwrap();
+        let e3node = next_inorder(e2node.clone()).unwrap();
+        let e4node = next_inorder(e3node.clone()).unwrap();
+        let should_be_none = next_inorder(e4node.clone());
+
+        assert_eq!(e1node.as_value(), &e1);
+        assert_eq!(e2node.as_value(), &e2);
+        assert_eq!(e3node.as_value(), &e3);
+        assert_eq!(e4node.as_value(), &e4);
+        assert!(should_be_none.is_none());
+    }
+
+    #[test]
+    fn test_next_inroder() {
+        test_next_inorder_gen::<u32>(1, 2, 3, 4);
     }
 }
