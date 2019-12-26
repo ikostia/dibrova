@@ -140,6 +140,16 @@ pub trait Bst {
     fn get_root(&self) -> Option<Link<Self::Node>>;
 
     fn insert(&mut self, value: <Self::Node as BstNode>::Value);
+
+    fn iter(&self) -> BstIterator<Self> {
+        let current = self
+            .get_root()
+            .map(|root| get_extreme(root, Direction::Left));
+        BstIterator {
+            _tree: self,
+            current,
+        }
+    }
 }
 
 fn get_extreme<Node: BstNode>(mut node: Link<Node>, direction: Direction) -> Link<Node> {
@@ -218,6 +228,28 @@ impl<Value: PartialEq + PartialOrd> Bst for SimpleBst<SimpleBstNode<Value>> {
 impl<Value: PartialEq + PartialOrd> SimpleBst<SimpleBstNode<Value>> {
     pub fn new() -> Self {
         Self { root: None }
+    }
+}
+
+pub struct BstIterator<'a, Tree: Bst + ?Sized + 'a> {
+    _tree: &'a Tree,
+    current: Option<Link<<Tree as Bst>::Node>>,
+}
+
+impl<'a, Tree: Bst + ?Sized + 'a> Iterator for BstIterator<'a, Tree> {
+    type Item = &'a <<Tree as Bst>::Node as BstNode>::Value;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let to_return = self.current.clone().map(|current| {
+            let raw_current: *const <Tree as Bst>::Node = Rc::into_raw(current);
+            let lifetimed_ref_node: &'a <Tree as Bst>::Node = unsafe { &*raw_current };
+            lifetimed_ref_node.as_value()
+        });
+        self.current = self
+            .current
+            .clone()
+            .and_then(|current| next_inorder(current));
+        to_return
     }
 }
 
@@ -476,5 +508,44 @@ mod tests {
     #[test]
     fn test_next_inroder() {
         test_next_inorder_gen::<u32>(1, 2, 3, 4);
+    }
+
+    fn test_iter_gen<V: Debug + Clone + PartialEq + PartialOrd>(e1: V, e2: V, e3: V, e4: V) {
+        // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
+        assert!((e1 < e2) && (e2 < e3) && (e3 < e4));
+
+        //   e2
+        //  /  \
+        // e1   e4
+        //     /
+        //    e3
+        let mut bst = empty_simple_bst::<V>();
+        bst.insert(e2.clone());
+        bst.insert(e4.clone());
+        bst.insert(e1.clone());
+        bst.insert(e3.clone());
+        let iter = bst.iter();
+        let v: Vec<&V> = iter.collect();
+        assert_eq!(v, vec![&e1, &e2, &e3, &e4]);
+
+        // TODO: use something like trybuild to verify that dropping
+        // `bst`, while using `iter` causes compilation errors
+    }
+
+    #[test]
+    fn test_iter() {
+        test_iter_gen::<u32>(1, 2, 3, 4);
+        test_iter_gen::<&u32>(&1, &2, &3, &4);
+        // non-static lifetime
+        let e1 = 1;
+        let e2 = 2;
+        let e3 = 3;
+        let e4 = 4;
+        test_iter_gen::<&u32>(&e1, &e2, &e3, &e4);
+        let e1 = String::from("a");
+        let e2 = String::from("b");
+        let e3 = String::from("c");
+        let e4 = String::from("d");
+        test_iter_gen::<&str>(&e1, &e2, &e3, &e4);
     }
 }

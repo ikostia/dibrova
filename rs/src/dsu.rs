@@ -199,5 +199,4 @@ mod tests {
         let mut dsu: OptimizedForestDsu<usize> = OptimizedForestDsu::new();
         test_basic_dsu_operations(&mut dsu, &[1, 2, 3]);
     }
-
 }
