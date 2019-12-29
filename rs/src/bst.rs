@@ -141,6 +141,21 @@ pub trait Bst {
 
     fn insert(&mut self, value: <Self::Node as BstNode>::Value);
 
+    fn find(&self, value: &<Self::Node as BstNode>::Value) -> Option<Link<Self::Node>> {
+        let mut maybe_node = self.get_root();
+        loop {
+            match maybe_node.take() {
+                None => return None,
+                Some(node) => match node.get_direction_of_value(value) {
+                    None => return Some(node),
+                    Some(dir) => {
+                        maybe_node = node.get_child(dir);
+                    }
+                },
+            }
+        }
+    }
+
     fn iter(&self) -> BstIterator<Self> {
         let current = self
             .get_root()
@@ -548,4 +563,39 @@ mod tests {
         let e4 = String::from("d");
         test_iter_gen::<&str>(&e1, &e2, &e3, &e4);
     }
+
+    fn test_find_gen<V: Debug + Clone + PartialEq + PartialOrd>(
+        e1: V,
+        e2: V,
+        e3: V,
+        e4: V,
+        e5: V,
+        e6: V,
+    ) {
+        // Let's make sure we're not shooting ourselves in the foot by creating incorrect tests
+        assert!((e1 < e2) && (e2 < e3) && (e3 < e4) && (e4 < e5) && (e5 < e6));
+        //   e3
+        //  /  \
+        // e1   e5
+        //     /
+        //    e4
+        let mut bst = empty_simple_bst::<V>();
+        bst.insert(e3.clone());
+        bst.insert(e5.clone());
+        bst.insert(e1.clone());
+        bst.insert(e4.clone());
+        assert_eq!(bst.find(&e3).unwrap().as_value(), &e3);
+        assert_eq!(bst.find(&e5).unwrap().as_value(), &e5);
+        assert_eq!(bst.find(&e1).unwrap().as_value(), &e1);
+        assert_eq!(bst.find(&e4).unwrap().as_value(), &e4);
+        assert!(bst.find(&e2).is_none());
+        assert!(bst.find(&e6).is_none());
+    }
+
+    #[test]
+    fn test_find() {
+        test_find_gen::<u32>(1, 2, 3, 4, 5, 6);
+        test_find_gen::<&str>("1", "2", "3", "4", "5", "6");
+    }
+
 }
